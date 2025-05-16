@@ -1,0 +1,79 @@
+
+3-Tier Web Application Architecture on AWS - Step-by-Step Guide
+================================================================
+
+Overview:
+---------
+This project builds a highly available and scalable 3-tier architecture on AWS using the following components:
+- VPC with Public and Private Subnets
+- Internet Gateway and NAT Gateways
+- Application Load Balancer (ALB)
+- Auto Scaling Group (ASG) with EC2 instances
+- RDS (MySQL) Database with Read Replica
+- Terraform for Infrastructure as Code (IaC)
+
+Steps:
+------
+
+1. VPC Setup:
+-------------
+- Create a VPC with CIDR block: 10.0.0.0/16
+- Enable DNS support and DNS hostnames
+
+2. Subnet Creation:
+-------------------
+- Create 2 Public Subnets (e.g., 10.0.0.0/24, 10.0.1.0/24)
+- Create 2 Private Subnets for App tier (10.0.2.0/24, 10.0.3.0/24)
+- Create 2 Private Subnets for DB tier (10.0.4.0/24, 10.0.5.0/24)
+- Ensure subnets are distributed across AZs (ap-south-1a, ap-south-1b)
+
+3. Internet Gateway and Route Tables:
+-------------------------------------
+- Create and attach an Internet Gateway (IGW) to the VPC
+- Create a public route table and associate with public subnets
+- Add route 0.0.0.0/0 via IGW
+
+4. NAT Gateway:
+---------------
+- Create 2 NAT Gateways in each public subnet
+- Allocate Elastic IPs for NATs
+- Create private route tables for app/db subnets
+- Add default route to respective NAT Gateways
+
+5. Security Groups:
+-------------------
+- ALB SG: Allow HTTP from 0.0.0.0/0
+- EC2 SG: Allow HTTP from ALB SG
+- RDS SG: Allow MySQL (port 3306) from EC2 SG
+
+6. Application Load Balancer (ALB):
+-----------------------------------
+- Deploy ALB in public subnets
+- Attach ALB SG
+- Configure listener on port 80
+
+7. Launch Template & Auto Scaling Group (ASG):
+----------------------------------------------
+- Create a launch template using EC2 with a user data script
+- Configure ASG with private app subnets
+- Attach ALB as target group
+- Define desired, min, max instance count
+
+8. RDS Database:
+----------------
+- Launch RDS MySQL in private DB subnets
+- Use RDS SG for security
+- Configure DB subnet group
+- (Optional) Add Read Replica in another AZ
+
+9. Validation:
+--------------
+- Access the application via ALB DNS
+- Ensure traffic is routed to EC2 instances in ASG
+- Confirm EC2 instances can communicate with RDS
+- Perform scaling test
+
+10. Clean Up (Optional):
+------------------------
+- Destroy infrastructure using Terraform destroy
+
